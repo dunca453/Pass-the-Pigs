@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pass the Pigs Scorekeeper</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between antialiased select-none">
+
+    <!-- Header -->
+    <header class="bg-slate-900 border-b border-slate-800 p-4 shadow-md sticky top-0 z-10">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <h1 class="text-xl font-bold tracking-tight text-amber-400 flex items-center gap-2">
+                <span>🐖</span> Pass the Pigs
+            </h1>
+            <div id="game-controls" class="hidden flex gap-2">
+                <button onclick="resetScores()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition">Reset</button>
+                <button onclick="openSetup()" class="text-xs bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg border border-slate-700 transition">Players</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-md w-full mx-auto p-4 flex-grow flex flex-col">
+
+        <!-- SETUP SCREEN -->
+        <div id="setup-screen" class="space-y-6 my-auto">
+            <div class="text-center space-y-2">
+                <h2 class="text-2xl font-bold text-white">New Game Setup</h2>
+                <p class="text-sm text-slate-400">Add players and set your winning target score.</p>
+            </div>
+
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-4 shadow-xl">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Winning Target Score</label>
+                    <input type="number" id="target-score" value="100" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-400 text-lg font-bold">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1">Players</label>
+                    <div id="player-inputs" class="space-y-2 mb-3">
+                        <!-- Dynamic inputs injected here -->
+                    </div>
+                    <button onclick="addPlayerInput()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-amber-400 font-medium rounded-xl border border-dashed border-slate-700 transition text-sm flex items-center justify-center gap-1">
+                        <span>+ Add Player</span>
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="startGame()" class="w-full py-4 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-2xl shadow-lg transition text-lg tracking-wide">
+                Start Game 🎲
+            </button>
+        </div>
+
+        <!-- GAME SCREEN -->
+        <div id="game-screen" class="hidden space-y-4 flex-grow flex flex-col">
+            <div class="flex justify-between items-center bg-slate-900/60 border border-slate-800/80 px-4 py-2.5 rounded-xl text-xs text-slate-400">
+                <span>Target: <strong id="display-target" class="text-white">100</strong> pts</span>
+                <span id="turn-indicator" class="text-amber-400 font-medium"></span>
+            </div>
+
+            <!-- Leaderboard / Player Cards -->
+            <div id="player-list" class="space-y-3 flex-grow">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- SCORE MODAL -->
+    <div id="score-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm hidden z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-md rounded-t-3xl sm:rounded-2xl p-6 space-y-5 shadow-2xl animate-in fade-in slide-in-from-bottom duration-200">
+            <div class="flex justify-between items-center">
+                <h3 id="modal-title" class="text-lg font-bold text-white">Add Points</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white p-1">✕</button>
+            </div>
+
+            <!-- Quick Add Pig Combinations -->
+            <div class="grid grid-cols-3 gap-2">
+                <button onclick="addPointsToActive(1)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 py-3 rounded-xl text-sm font-semibold transition">Sider (+1)</button>
+                <button onclick="addPointsToActive(5)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 py-3 rounded-xl text-sm font-semibold transition">Trotter (+5)</button>
+                <button onclick="addPointsToActive(5)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 py-3 rounded-xl text-sm font-semibold transition">Razorback (+5)</button>
+                <button onclick="addPointsToActive(10)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 py-3 rounded-xl text-sm font-semibold transition">Snouter (+10)</button>
+                <button onclick="addPointsToActive(15)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 py-3 rounded-xl text-sm font-semibold transition">Leaning Jowler (+15)</button>
+                <button onclick="addPointsToActive(20)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 py-3 rounded-xl text-sm font-semibold transition">Double (+20)</button>
+                <button onclick="addPointsToActive(40)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 py-3 rounded-xl text-sm font-semibold transition">Dbl Snouter (+40)</button>
+                <button onclick="addPointsToActive(60)" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 py-3 rounded-xl text-sm font-semibold transition">Dbl Jowler (+60)</button>
+                <button onclick="addPointsToActive(0)" class="bg-rose-950/40 hover:bg-rose-900/40 text-rose-300 border border-rose-900/50 py-3 rounded-xl text-sm font-semibold transition">Pig Out! (0)</button>
+            </div>
+
+            <!-- Custom Input -->
+            <div class="space-y-2">
+                <label class="block text-xs font-medium text-slate-400">Custom Turn Score</label>
+                <div class="flex gap-2">
+                    <input type="number" id="custom-points" placeholder="Enter points" class="flex-grow bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-amber-400">
+                    <button onclick="submitCustomPoints()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-6 py-3 rounded-xl transition">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WINNER MODAL -->
+    <div id="winner-modal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-amber-500/50 w-full max-w-sm rounded-3xl p-8 text-center space-y-4 shadow-2xl">
+            <div class="text-5xl">🏆</div>
+            <h2 id="winner-name" class="text-2xl font-extrabold text-amber-400"></h2>
+            <p class="text-slate-300 text-sm">Has reached the target and won the game!</p>
+            <button onclick="closeWinnerModal()" class="w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-2xl transition shadow-lg">
+                New Game / Play Again
+            </button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="p-4 text-center text-xs text-slate-600">
+        Pass the Pigs Scorekeeper &bull; Hosted on GitHub Pages
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        let state = {
+            target: 100,
+            players: [],
+            activePlayerIndex: null
+        };
+
+        const STORAGE_KEY = 'pass_the_pigs_game_state';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    state = JSON.parse(saved);
+                    if (state.players && state.players.length > 0) {
+                        showGameScreen();
+                        renderGame();
+                        return;
+                    }
+                } catch (e) { console.error(e); }
+            }
+            // Default setup state
+            addPlayerInput('Player 1');
+            addPlayerInput('Player 2');
+        });
+
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function addPlayerInput(name = '') {
+            const container = document.getElementById('player-inputs');
+            const div = document.createElement('div');
+            div.className = 'flex gap-2 items-center';
+            div.innerHTML = `
+                <input type="text" value="${name}" placeholder="Player name" class="player-name-input flex-grow bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-amber-400 text-sm">
+                <button onclick="this.parentElement.remove()" class="text-slate-500 hover:text-rose-400 p-2 text-sm">✕</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function startGame() {
+            const targetInput = document.getElementById('target-score');
+            const nameInputs = document.querySelectorAll('.player-name-input');
+            
+            const target = parseInt(targetInput.value);
+            if (isNaN(target) || target <= 0) {
+                alert('Please enter a valid target score.');
+                return;
+            }
+
+            const players = [];
+            nameInputs.forEach(input => {
+                const name = input.value.trim();
+                if (name) {
+                    players.push({ name, score: 0 });
+                }
+            });
+
+            if (players.length < 1) {
+                alert('Please add at least one player.');
+                return;
+            }
+
+            state = { target, players, activePlayerIndex: 0 };
+            saveState();
+            showGameScreen();
+            renderGame();
+        }
+
+        function showGameScreen() {
+            document.getElementById('setup-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('game-controls').classList.remove('hidden');
+        }
+
+        function openSetup() {
+            document.getElementById('setup-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('game-controls').classList.add('hidden');
+            
+            const container = document.getElementById('player-inputs');
+            container.innerHTML = '';
+            state.players.forEach(p => addPlayerInput(p.name));
+            document.getElementById('target-score').value = state.target;
+        }
+
+        function resetScores() {
+            if (confirm('Are you sure you want to reset all scores to zero?')) {
+                state.players.forEach(p => p.score = 0);
+                state.activePlayerIndex = 0;
+                saveState();
+                renderGame();
+            }
+        }
+
+        function renderGame() {
+            document.getElementById('display-target').textContent = state.target;
+            const list = document.getElementById('player-list');
+            list.innerHTML = '';
+
+            state.players.forEach((player, index) => {
+                const isLeading = state.players.some(p => p.score > 0) && player.score === Math.max(...state.players.map(p => p.score));
+                const percentage = Math.min(100, Math.round((player.score / state.target) * 100));
+
+                const card = document.createElement('div');
+                card.className = `bg-slate-900 border rounded-2xl p-4 transition shadow-lg relative overflow-hidden ${index === state.activePlayerIndex ? 'border-amber-400/80 ring-1 ring-amber-400/40' : 'border-slate-800'}`;
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2 relative z-10">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-base text-white">${player.name}</span>
+                                ${isLeading && player.score > 0 ? '<span class="text-xs bg-amber-400/10 text-amber-400 px-2 py-0.5 rounded-full font-medium">Leading</span>' : ''}
+                            </div>
+                            <span class="text-xs text-slate-400">Progress: ${percentage}%</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-3xl font-black text-amber-400">${player.score}</span>
+                            <span class="text-xs text-slate-500 block">pts</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden mb-3 relative z-10">
+                        <div class="bg-amber-400 h-full transition-all duration-300" style="width: ${percentage}%"></div>
+                    </div>
+
+                    <button onclick="openScoreModal(${index})" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold rounded-xl text-sm transition relative z-10 border border-slate-700/60">
+                        + Add Turn Score
+                    </button>
+                `;
+                list.appendChild(card);
+            });
+
+            const activePlayer = state.players[state.activePlayerIndex];
+            document.getElementById('turn-indicator').textContent = `Turn: ${activePlayer.name}`;
+        }
+
+        function openScoreModal(index) {
+            state.activePlayerIndex = index;
+            document.getElementById('modal-title').textContent = `Add Points for ${state.players[index].name}`;
+            document.getElementById('custom-points').value = '';
+            document.getElementById('score-modal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('score-modal').classList.add('hidden');
+        }
+
+        function addPointsToActive(points) {
+            const player = state.players[state.activePlayerIndex];
+            player.score += points;
+            closeModal();
+            saveState();
+            renderGame();
+
+            if (player.score >= state.target) {
+                document.getElementById('winner-name').textContent = `${player.name} Wins!`;
+                document.getElementById('winner-modal').classList.remove('hidden');
+            }
+        }
+
+        function submitCustomPoints() {
+            const input = document.getElementById('custom-points');
+            const pts = parseInt(input.value);
+            if (isNaN(pts)) {
+                alert('Please enter a valid number of points.');
+                return;
+            }
+            addPointsToActive(pts);
+        }
+
+        function closeWinnerModal() {
+            document.getElementById('winner-modal').classList.add('hidden');
+            openSetup();
+        }
+    </script>
+</body>
+</html>
